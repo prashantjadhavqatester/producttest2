@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PRASHNAT</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/TableToExcel/0.2.4/TableToExcel.js"></script>
+    <style>
+        :root {
+            --primary-color: #FFA500; /* Orange */
+            --secondary-color: #000080; /* Blue */
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --border-color: #808080;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        nav .logo {
+            width: 150px;
+            height: auto;
+            
+        }
+
+        nav ul {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav ul li {
+            list-style-type: none;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            transform: scale(1.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 30px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .actions td {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #000080; /* Darker blue */
+        }
+
+        a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+       <header class="header-container">
+    <div class="logo-container">
+  
+        <img src="img/Prashant.png" alt="Logo" width="80" height="80">
+ 
+
+    </div>
+    <nav class="navigation">
+        <ul>
+            <li><a href="/#">Services</a></li>
+            <li><a href="/Loginpage">Login/Register</a></li>
+             <li><a href="/new">Add New Product</a></li>
+            <!--<li><a href="/Loginpage">Register</a></li>-->
+        </ul>
+    </nav>
+</header>
+
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Made In</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productList">
+           
+            
+            <tr th:each="product : ${listProducts}">
+            	<td th:text="${product.id}">Product ID</td>
+                <td th:text="${product.name}">Name</td>
+                <td th:text="${product.brand}">Brand</td>
+                <td th:text="${product.madein}">Made in</td>
+                <td th:text="${product.price}">Price</td>
+                <td>
+                	<a th:href="@{'/edit/' + ${product.id}}">Edit</a>
+                	&nbsp;&nbsp;&nbsp;
+                	<a th:href="@{'/delete/' + ${product.id}}">Delete</a>
+                </td>
+            </tr>
+        
+            </tbody>
+        </table>
+        <button onclick="exportReportToExcel()">Export to Excel</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                console.log('Fetched products:', data);
+                
+                const productTable = document.getElementById('productList');
+                productTable.innerHTML = '';
+
+                data.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.brand}</td>
+                        <td>${product.madein}</td>
+                        <td>${product.price}</td>
+                        <td class="actions">
+                            <button onclick="editProduct(${product.id})">Edit</button>
+                            <button onclick="deleteProduct(${product.id})">Delete</button>
+                        </td>
+                    `;
+                    productTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching or processing products:', error);
+            }
+        });
+
+        function editProduct(id) {
+            // Implement edit functionality
+            console.log(`Editing product with id: ${id}`);
+        }
+
+        function deleteProduct(id) {
+            // Implement delete functionality
+            console.log(`Deleting product with id: ${id}`);
+        }
+
+        function exportReportToExcel() {
+            let table = document.getElementById("productTable");
+            TableToExcel.convert(table[0], {
+                name: 'file.xlsx',
+                sheet: {name: 'Sheet 1'}
+            });
+        }
+    </script>
+</body>
+</html>
+
